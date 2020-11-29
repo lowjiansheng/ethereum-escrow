@@ -7,17 +7,17 @@ contract Escrow {
     address public buyer;
     address public seller;
 
-    uint32 sellingAmount;
+    uint public sellingAmount;
 
     string public name;
 
-    ERC20 public ercToken;
+    IERC20 public ercToken;
 
-    constructor(address _tokenAddress, uint32 _sellingAmount) {
+    constructor(address _tokenAddress, uint _sellingAmount) {
         name = "Escrow smart contract";
         seller = msg.sender;
         sellingAmount = _sellingAmount;
-        ercToken = ERC20(_tokenAddress);
+        ercToken = IERC20(_tokenAddress);
     }
 
     modifier onlyBuyer() {
@@ -37,7 +37,7 @@ contract Escrow {
     }
 
     // This is sent once the buyer decides to buy the item
-    function confirmPurchase() public onlyBuyer payable {
+    function confirmPurchase() public payable {
         buyer = msg.sender;
         require(
             ercToken.balanceOf(buyer) > sellingAmount,
@@ -49,6 +49,11 @@ contract Escrow {
 
     // once buyer received the item, will call this to release funds to seller
     function itemReceived() public onlyBuyer payable {
+        require(
+            ercToken.balanceOf(address(this)) >= sellingAmount,
+            "contract does not have enough balance"
+        ); 
+        
         ercToken.transfer(seller, sellingAmount);
     }
 
