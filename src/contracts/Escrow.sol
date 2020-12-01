@@ -1,6 +1,6 @@
 pragma solidity ^0.7.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Escrow {
 
@@ -13,11 +13,25 @@ contract Escrow {
 
     IERC20 public ercToken;
 
+    enum State { Created, Active, Inactive, Release }
+
+    State public currentState;
+
     constructor(address _tokenAddress, uint _sellingAmount) {
         name = "Escrow smart contract";
         seller = msg.sender;
         sellingAmount = _sellingAmount;
         ercToken = IERC20(_tokenAddress);
+
+        currentState = State.Created;
+    }
+
+    modifier inState(State _state) {
+        require(
+            currentState == _state,
+            "State is incorrect"
+        );
+        _;
     }
 
     modifier onlyBuyer() {
@@ -36,8 +50,18 @@ contract Escrow {
         _;
     }
 
+    function refundBuyer() public onlySeller inState(State.Active) payable {
+        require(
+            ercToken.balanceOf(address(this)) == sellingAmount,
+            "contract does not have enough balance"
+        );
+
+        ercToken.transfer(seller, sellingAmount);
+        currentState = State.Inactive;
+    }
+
     // This is sent once the buyer decides to buy the item
-    function confirmPurchase() public payable {
+    function confirmPurchase() public inState(State.Created) payable {
         buyer = msg.sender;
         require(
             ercToken.balanceOf(buyer) > sellingAmount,
@@ -45,16 +69,18 @@ contract Escrow {
         );
 
         ercToken.transferFrom(buyer, address(this), sellingAmount);
+        currentState = State.Active;
     }
 
     // once buyer received the item, will call this to release funds to seller
-    function itemReceived() public onlyBuyer payable {
+    function itemReceived() public onlyBuyer inState(State.Active) payable {
         require(
             ercToken.balanceOf(address(this)) >= sellingAmount,
             "contract does not have enough balance"
         ); 
         
         ercToken.transfer(seller, sellingAmount);
+        currentState = State.Release;
     }
 
 }

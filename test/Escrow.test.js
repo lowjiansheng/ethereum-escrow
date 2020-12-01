@@ -62,6 +62,12 @@ contract('Escrow', ([buyer, seller]) => {
             sellerBalance = await ercToken.balanceOf(seller)
             assert.equal(sellerBalance.toString(), tokens('10'))
         })
+
+        it('correct refund a purchase', async() => {            
+
+            const balance = await ercToken.balanceOf(buyer)
+            assert.equal(balance.toString(), tokens('1000'))
+        })
     })
 
 }) 
