@@ -17,15 +17,6 @@ contract Escrow {
 
     State public currentState;
 
-    constructor(address _tokenAddress, uint _sellingAmount) {
-        name = "Escrow smart contract";
-        seller = msg.sender;
-        sellingAmount = _sellingAmount;
-        ercToken = IERC20(_tokenAddress);
-
-        currentState = State.Created;
-    }
-
     modifier inState(State _state) {
         require(
             currentState == _state,
@@ -50,36 +41,55 @@ contract Escrow {
         _;
     }
 
-    function refundBuyer() public onlySeller inState(State.Active) payable {
-        require(
-            ercToken.balanceOf(address(this)) == sellingAmount,
-            "contract does not have enough balance"
-        );
+    // constructor should be called by the seller for initialisation
+    constructor(address _tokenAddress, uint _sellingAmount) {
+        name = "Escrow smart contract";
+        seller = msg.sender;
+        sellingAmount = _sellingAmount;
+        ercToken = IERC20(_tokenAddress);
 
-        ercToken.transfer(seller, sellingAmount);
-        currentState = State.Inactive;
+        // seller sends over 2x of the amount to this smart contract
+        ercToken.transferFrom(seller, address(this), 2 * _sellingAmount);
+
+        currentState = State.Created;
     }
 
-    // This is sent once the buyer decides to buy the item
-    function confirmPurchase() public inState(State.Created) payable {
+    // This is sent when the buyer decides to buy the item
+    function purchase() public inState(State.Created) payable {
         buyer = msg.sender;
         require(
             ercToken.balanceOf(buyer) > sellingAmount,
             "user does not have enough balance"
         );
 
-        ercToken.transferFrom(buyer, address(this), sellingAmount);
+        // buyer sends over 2x of the amount to this smart contract
+        ercToken.transferFrom(buyer, address(this), 2 * sellingAmount);
+        
         currentState = State.Active;
     }
 
-    // once buyer received the item, will call this to release funds to seller
-    function itemReceived() public onlyBuyer inState(State.Active) payable {
+    function refundBuyer() public onlySeller inState(State.Active) payable {
         require(
-            ercToken.balanceOf(address(this)) >= sellingAmount,
+            ercToken.balanceOf(address(this)) == 4 * sellingAmount,
+            "contract does not have enough balance"
+        );
+
+        ercToken.transfer(seller, 2 * sellingAmount);
+        ercToken.transfer(buyer, 2 * sellingAmount);
+
+        currentState = State.Inactive;
+    }
+
+    // once buyer received the item, will call this to release funds to seller
+    function itemReceived() public onlyBuyer payable {
+        require(
+            ercToken.balanceOf(address(this)) == 4 * sellingAmount,
             "contract does not have enough balance"
         ); 
         
-        ercToken.transfer(seller, sellingAmount);
+        ercToken.transfer(seller, 3 * sellingAmount);
+        ercToken.transfer(buyer, sellingAmount);
+
         currentState = State.Release;
     }
 
