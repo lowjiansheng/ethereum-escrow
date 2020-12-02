@@ -68,6 +68,16 @@ contract Escrow {
         currentState = State.Active;
     }
 
+    // if buyer doesn't initiate a purchase, allow the seller to get back the funds
+    function cancelPurchase() public onlySeller inState(State.Created) payable {
+        require(
+            ercToken.balanceOf(address(this)) == 2 * sellingAmount,
+            "this address does not have enough balance"
+        );
+
+        ercToken.transfer(seller, 2 * sellingAmount);
+    }
+
     function refundBuyer() public onlySeller inState(State.Active) payable {
         require(
             ercToken.balanceOf(address(this)) == 4 * sellingAmount,
