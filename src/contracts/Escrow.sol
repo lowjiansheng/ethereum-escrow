@@ -13,7 +13,7 @@ contract Escrow {
 
     IERC20 public ercToken;
 
-    enum State { Created, Active, Inactive, Release }
+    enum State { Created, SellerInitialized, Active, Inactive, Release }
 
     State public currentState;
 
@@ -44,18 +44,24 @@ contract Escrow {
     // constructor should be called by the seller for initialisation
     constructor(address _tokenAddress, uint _sellingAmount) {
         name = "Escrow smart contract";
-        seller = msg.sender;
+        
         sellingAmount = _sellingAmount;
         ercToken = IERC20(_tokenAddress);
-
-        // seller sends over 2x of the amount to this smart contract
-        ercToken.transferFrom(seller, address(this), 2 * _sellingAmount);
 
         currentState = State.Created;
     }
 
+    // whoever calls this contract will be the seller
+    function sellerInitialize() public inState(State.Created) payable {
+        seller = msg.sender;
+        // seller sends over 2x of the amount to this smart contract
+        ercToken.transferFrom(seller, address(this), 2 * sellingAmount);
+
+        currentState = State.SellerInitialized;
+    }
+
     // This is sent when the buyer decides to buy the item
-    function purchase() public inState(State.Created) payable {
+    function purchase() public inState(State.SellerInitialized) payable {
         buyer = msg.sender;
         require(
             ercToken.balanceOf(buyer) > sellingAmount,
