@@ -14,10 +14,21 @@ function tokens(n) {
 
 contract('Escrow', ([buyer, seller]) => {
     let escrow, ercToken;
-    before(async() => {
-        ercToken = await MockERC.new(buyer, tokens('1000'))
-
+    beforeEach(async () => {
+        ercToken = await MockERC.new(buyer, seller, tokens('1000'))
         escrow = await Escrow.new(ercToken.address, tokens('10'), { from: seller })
+    })
+
+    describe('Erc mint', async() => {
+        it('sends buyer correct tokens', async() => {
+            const balance = await ercToken.balanceOf(buyer)
+            assert.equal(balance.toString(), tokens('1000'))
+        })
+
+        it('sends seller correct tokens', async() => {
+            const balance = await ercToken.balanceOf(seller)
+            assert.equal(balance.toString(), tokens('1000'))
+        })
     })
 
     describe('Escrow deployment', async() => {
@@ -32,35 +43,68 @@ contract('Escrow', ([buyer, seller]) => {
         })
     })
 
-    describe('Erc mint', async() => {
-        it('send buyer correct tokens', async() => {
-            const balance = await ercToken.balanceOf(buyer)
-            assert.equal(balance.toString(), tokens('1000'))
-        })
-    })
-
     describe('Escrow contract', async() => {
         it('correctly execute a purchase', async() => {
-            await ercToken.approve(escrow.address, tokens('10'), { from: buyer })
-            await escrow.confirmPurchase({ from: buyer } )
+            await ercToken.approve(escrow.address, tokens('20'), { from: seller })
+            await escrow.sellerInitialize({ from: seller })
+            
+            let contractBalance = await ercToken.balanceOf(escrow.address)
+            assert.equal(contractBalance.toString(), tokens('20'))
+
+            let sellerBalance = await ercToken.balanceOf(seller)
+            assert.equal(sellerBalance.toString(), tokens('980'))
+
+            await ercToken.approve(escrow.address, tokens('20'), { from: buyer })
+            await escrow.purchase({ from: buyer } )
 
             const balance = await ercToken.balanceOf(buyer)
-            assert.equal(balance.toString(), tokens('990'))
+            assert.equal(balance.toString(), tokens('980'))
             
-            let sellerBalance = await ercToken.balanceOf(seller)
-            assert.equal(sellerBalance.toString(), tokens('0'))
-
-            let contractBalance = await ercToken.balanceOf(escrow.address)
-            assert.equal(contractBalance.toString(), tokens('10'))
+            contractBalance = await ercToken.balanceOf(escrow.address)
+            assert.equal(contractBalance.toString(), tokens('40'))
 
             //await ercToken.approve(seller, tokens('10'), { from: escrow.address })
-            await escrow.itemReceived()
+            await escrow.itemReceived({ from: buyer })
             
             contractBalance = await ercToken.balanceOf(escrow.address)
             assert.equal(contractBalance.toString(), tokens('0'))
 
             sellerBalance = await ercToken.balanceOf(seller)
-            assert.equal(sellerBalance.toString(), tokens('10'))
+            assert.equal(sellerBalance.toString(), tokens('1010'))
+
+            let buyerBalance = await ercToken.balanceOf(buyer)
+            assert.equal(buyerBalance.toString(), tokens('990'))
+        })
+
+        it('correctly refunds a purchase', async () => {
+            await ercToken.approve(escrow.address, tokens('20'), { from: seller })
+            await escrow.sellerInitialize({ from: seller })
+            
+            let contractBalance = await ercToken.balanceOf(escrow.address)
+            assert.equal(contractBalance.toString(), tokens('20'))
+
+            let sellerBalance = await ercToken.balanceOf(seller)
+            assert.equal(sellerBalance.toString(), tokens('980'))
+
+            await ercToken.approve(escrow.address, tokens('20'), { from: buyer })
+            await escrow.purchase({ from: buyer } )
+
+            const balance = await ercToken.balanceOf(buyer)
+            assert.equal(balance.toString(), tokens('980'))
+            
+            contractBalance = await ercToken.balanceOf(escrow.address)
+            assert.equal(contractBalance.toString(), tokens('40'))
+
+            await escrow.refundBuyer({ from: seller })
+
+            contractBalance = await ercToken.balanceOf(escrow.address)
+            assert.equal(contractBalance.toString(), tokens('0'))
+
+            sellerBalance = await ercToken.balanceOf(seller)
+            assert.equal(sellerBalance.toString(), tokens('1000'))
+
+            buyerBalance = await ercToken.balanceOf(buyer)
+            assert.equal(buyerBalance.toString(), tokens('1000'))
         })
     })
 
