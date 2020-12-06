@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import './App.css'
 import Web3 from 'web3'
+import HeaderBar from './components/HeaderBar'
 
 class App extends Component {
 
@@ -33,14 +34,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <p>
-          Account: {this.state.account}
-          </p>
-          <p>
-            Ether balance: {this.state.balance}
-          </p>
-        </header>
+          <HeaderBar etherBalance={this.state.balance}/>
       </div>
     );
   }
