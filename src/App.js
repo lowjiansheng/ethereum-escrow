@@ -5,6 +5,9 @@ import HeaderBar from './components/HeaderBar'
 
 import Escrow from './abis/Escrow.json'
 import MockERC20 from './abis/MockERC20.json'
+import BuyerBody from './components/BuyerBody'
+import SellerBody from './components/SellerBody'
+import Users from './constants/Users'
 
 class App extends Component {
 
@@ -27,13 +30,18 @@ class App extends Component {
     const mockERCBalance = await mockERC20Contract.methods.balanceOf(accounts[0]).call()
     const mockERCSymbol = await mockERC20Contract.methods.symbol().call()
 
+    // Contract information
+    const escrowCurrentState = await escrowContract.methods.currentState().call()
 
     this.setState({
       account: accounts[0],
       etherBalance: web3.utils.fromWei(etherBalance),
       ercBalance: web3.utils.fromWei(mockERCBalance),
       ercSymbol: mockERCSymbol,
-      escrowContract: escrowContract
+      escrowContract: escrowContract,
+      mockERC20Contract: mockERC20Contract,
+      escrowState: escrowCurrentState,
+      web3: web3
     })
   }
 
@@ -45,28 +53,36 @@ class App extends Component {
       ercBalance: '',
       appState: '',
       escrowContract: '',
-      ercSymbol: ''
+      mockERC20Contract: '',
+      ercSymbol: '',
+      escrowState: '',
+      web3: ''
     }
   }
 
   onSellerButtonClick = () => {
     this.setState({
-      appState: "seller"
+      appState: Users.seller
     })
   }
 
   onBuyerButtonClick = () => {
     this.setState({
-      appState: "buyer"
+      appState: Users.buyer
     })
   }
 
   render() {
     let mainBody
-    if (this.state.appState == "seller") {
-      mainBody = <div>Seller</div>
+    if (this.state.appState == Users.seller) {
+      mainBody = <SellerBody 
+                  escrowContract={this.state.escrowContract} 
+                  escrowState={this.state.escrowState} 
+                  web3={this.state.web3} 
+                  mockERC20Contract={this.state.mockERC20Contract}
+                  sellerAddress={this.state.account}/>
     } else {
-      mainBody = <div>Buyer</div>
+      mainBody = <BuyerBody escrowContract={this.state.escrowContract} escrowState={this.state.escrowState}/>
     }
 
     return (
@@ -77,7 +93,9 @@ class App extends Component {
           ercSymbol={this.state.ercSymbol}
           sellerOnClick={this.onSellerButtonClick} 
           buyerOnClick={this.onBuyerButtonClick}/>
-          {mainBody}
+          <div className = "container">
+            {mainBody}
+          </div>
       </div>
     );
   }
