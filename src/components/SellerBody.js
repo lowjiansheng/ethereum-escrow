@@ -65,20 +65,15 @@ async function sellerInitializeContract(escrowContract, sellingAmount, web3, moc
     const sellingAmountInWei = web3.utils.toWei((2 * sellingAmount).toString())
     console.log(sellingAmountInWei)
     console.log(escrowContract.options.address)
-    await mockERC20Contract.methods.approve(escrowContract.options.address, sellingAmountInWei).call({from: sellerAddress}, function(error, result) {
-        if (error) {
-            return error
-        } else {
-            return result
-        }
-    })
-
-    await escrowContract.methods.sellerInitialize(web3.utils.toWei(sellingAmount.toString())).call({from: sellerAddress}, function(error, result) {
-        if (error) {
-            return error
-        } else{
-            return result
-        }
+    
+    mockERC20Contract.methods.approve(escrowContract.options.address, sellingAmountInWei).send({from: sellerAddress}).on('transactionHash', (hash) => {
+        escrowContract.methods.sellerInitialize(web3.utils.toWei(sellingAmount.toString())).send({ from: sellerAddress }, function (error, result) {
+            if (error) {
+                return error
+            } else {
+                return result
+            }
+        })
     })
 }
 
