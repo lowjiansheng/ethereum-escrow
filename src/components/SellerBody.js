@@ -63,9 +63,17 @@ function SellerWaiting() {
 async function sellerInitializeContract(escrowContract, sellingAmount, web3, mockERC20Contract, sellerAddress) {
     console.log("Calling the blockchain")
     const sellingAmountInWei = web3.utils.toWei((2 * sellingAmount).toString())
-    await mockERC20Contract.methods.approve(sellerAddress, sellingAmountInWei).call()
+    console.log(sellingAmountInWei)
+    console.log(escrowContract.options.address)
+    await mockERC20Contract.methods.approve(escrowContract.options.address, sellingAmountInWei).call({from: sellerAddress}, function(error, result) {
+        if (error) {
+            return error
+        } else {
+            return result
+        }
+    })
 
-    await escrowContract.methods.sellerInitialize(web3.utils.toWei(sellingAmount.toString())).call(function(error, result) {
+    await escrowContract.methods.sellerInitialize(web3.utils.toWei(sellingAmount.toString())).call({from: sellerAddress}, function(error, result) {
         if (error) {
             return error
         } else{

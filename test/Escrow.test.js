@@ -16,7 +16,7 @@ contract('Escrow', ([buyer, seller]) => {
     let escrow, ercToken;
     beforeEach(async () => {
         ercToken = await MockERC.new(buyer, seller, tokens('1000'))
-        escrow = await Escrow.new(ercToken.address, tokens('10'), { from: seller })
+        escrow = await Escrow.new(ercToken.address, { from: seller })
     })
 
     describe('Erc mint', async() => {
