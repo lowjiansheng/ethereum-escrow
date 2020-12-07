@@ -42,18 +42,19 @@ contract Escrow {
     }
 
     // constructor should be called by the seller for initialisation
-    constructor(address _tokenAddress, uint _sellingAmount) {
+    constructor(address _tokenAddress) {
         name = "Escrow smart contract";
         
-        sellingAmount = _sellingAmount;
         ercToken = IERC20(_tokenAddress);
 
         currentState = State.Created;
     }
 
     // whoever calls this contract will be the seller
-    function sellerInitialize() public inState(State.Created) payable {
+    function sellerInitialize(uint _sellingAmount) public inState(State.Created) payable {
         seller = msg.sender;
+
+        sellingAmount = _sellingAmount;
         // seller sends over 2x of the amount to this smart contract
         ercToken.transferFrom(seller, address(this), 2 * sellingAmount);
 
