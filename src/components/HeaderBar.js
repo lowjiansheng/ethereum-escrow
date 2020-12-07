@@ -8,7 +8,7 @@ function HeaderBar (props) {
             <Button variant="outline-dark" onClick={props.sellerOnClick}>Seller</Button>
             <Button variant="outline-dark" onClick={props.buyerOnClick}>Buyer</Button>
         </Nav>
-        <Nav className="mr-auto">
+        <Nav className="mr-sm-2">
             Ether balance: {props.etherBalance} {props.ercSymbol} balance: {props.ercBalance}
         </Nav>
     </Navbar>
