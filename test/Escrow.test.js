@@ -16,7 +16,7 @@ contract('Escrow', ([buyer, seller]) => {
     let escrow, ercToken;
     beforeEach(async () => {
         ercToken = await MockERC.new(buyer, seller, tokens('1000'))
-        escrow = await Escrow.new(ercToken.address, tokens('10'), { from: seller })
+        escrow = await Escrow.new(ercToken.address, { from: seller })
     })
 
     describe('Erc mint', async() => {
@@ -36,17 +36,12 @@ contract('Escrow', ([buyer, seller]) => {
             const name = await escrow.name()
             assert.equal(name, 'Escrow smart contract')
         })
-
-        it('selling amount is correct', async() => {
-            const amount = await escrow.sellingAmount()
-            assert.equal(amount.toString(), tokens('10'))
-        })
     })
 
     describe('Escrow contract', async() => {
         it('correctly execute a purchase', async() => {
             await ercToken.approve(escrow.address, tokens('20'), { from: seller })
-            await escrow.sellerInitialize({ from: seller })
+            await escrow.sellerInitialize(tokens('10'), { from: seller })
             
             let contractBalance = await ercToken.balanceOf(escrow.address)
             assert.equal(contractBalance.toString(), tokens('20'))
@@ -78,7 +73,7 @@ contract('Escrow', ([buyer, seller]) => {
 
         it('correctly refunds a purchase', async () => {
             await ercToken.approve(escrow.address, tokens('20'), { from: seller })
-            await escrow.sellerInitialize({ from: seller })
+            await escrow.sellerInitialize(tokens('10'), { from: seller })
             
             let contractBalance = await ercToken.balanceOf(escrow.address)
             assert.equal(contractBalance.toString(), tokens('20'))
