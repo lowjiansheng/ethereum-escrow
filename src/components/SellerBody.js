@@ -8,14 +8,15 @@ const { Component } = require("react");
 
 function SellerBody(props) {
     let body
-    if (props.escrowState == 0) {
-        body = <SellerInitializeBody 
-                escrowContract={props.escrowContract} 
-                web3={props.web3}
-                mockERC20Contract={props.mockERC20Contract}
-                sellerAddress={props.sellerAddress}/>
-    } else {
-        body = <SellerWaiting/>
+    switch (props.escrowState) {
+        case '0':
+            body = <SellerInitializeBody {...props}/>
+            break;
+        case '4':
+            body = <div>Contract end</div>
+            break;
+        default:
+            body = <SellerWaiting {...props}/>
     }
 
     return (
@@ -33,6 +34,7 @@ function SellerInitializeBody(props) {
         if (sellingAmount == '' || sellingAmount == 0) {
             return
         } else {
+            props.setSellingAmountHandler(sellingAmount)
             let res = sellerInitializeContract(props.escrowContract, 10, props.web3, props.mockERC20Contract, props.sellerAddress)
             console.log(res)
             return res
@@ -51,7 +53,7 @@ function SellerInitializeBody(props) {
     )
 }
 
-function SellerWaiting() {
+function SellerWaiting(props) {
     return (
         <div>
             Currently waiting on an action from buyer

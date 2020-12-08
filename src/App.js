@@ -30,6 +30,9 @@ class App extends Component {
     const mockERCBalance = await mockERC20Contract.methods.balanceOf(accounts[0]).call()
     const mockERCSymbol = await mockERC20Contract.methods.symbol().call()
 
+    // Fetch escrow information
+    const sellingAmount = await escrowContract.methods.sellingAmount().call()
+
     // Contract information
     const escrowCurrentState = await escrowContract.methods.currentState().call()
 
@@ -41,7 +44,8 @@ class App extends Component {
       escrowContract: escrowContract,
       mockERC20Contract: mockERC20Contract,
       escrowState: escrowCurrentState,
-      web3: web3
+      web3: web3,
+      sellingAmount: sellingAmount
     })
   }
 
@@ -56,7 +60,8 @@ class App extends Component {
       mockERC20Contract: '',
       ercSymbol: '',
       escrowState: '',
-      web3: ''
+      web3: {},
+      sellingAmount: ''
     }
   }
 
@@ -72,6 +77,12 @@ class App extends Component {
     })
   }
 
+  setSellingAmountHandler = (sellingAmount) => {
+    this.setState({
+      sellingAmount: sellingAmount
+    })
+  }
+
   render() {
     let mainBody
     if (this.state.appState == Users.seller) {
@@ -80,9 +91,18 @@ class App extends Component {
                   escrowState={this.state.escrowState} 
                   web3={this.state.web3} 
                   mockERC20Contract={this.state.mockERC20Contract}
-                  sellerAddress={this.state.account}/>
+                  sellerAddress={this.state.account}
+                  setSellingAmountHandler={this.setSellingAmountHandler}
+                  />
     } else {
-      mainBody = <BuyerBody escrowContract={this.state.escrowContract} escrowState={this.state.escrowState}/>
+      mainBody = <BuyerBody 
+                  escrowContract={this.state.escrowContract} 
+                  escrowState={this.state.escrowState}
+                  sellingAmount={this.state.sellingAmount}
+                  mockERC20Contract={this.state.mockERC20Contract}
+                  web3={this.state.web3}
+                  buyerAddress={this.state.account}
+                  />
     }
 
     return (

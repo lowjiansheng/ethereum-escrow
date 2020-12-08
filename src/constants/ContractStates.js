@@ -6,6 +6,4 @@ const ContractStates = [
     "Release"
 ]
 
-
-
 export default ContractStates
