@@ -9,10 +9,10 @@ const { Component } = require("react");
 function SellerBody(props) {
     let body
     switch (props.escrowState) {
-        case '0':
+        case "0":
             body = <SellerInitializeBody {...props}/>
             break;
-        case '4':
+        case "4":
             body = <div>Contract end</div>
             break;
         default:
