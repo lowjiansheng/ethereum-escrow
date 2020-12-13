@@ -1,7 +1,4 @@
 import { Button, Form } from 'react-bootstrap';
-import Web3 from 'web3';
-import Escrow from '../abis/Escrow.json'
-import ContractStates from '../constants/ContractStates'
 import "web3"
 import StandardButtonBody from './StandardButtonBody';
 
@@ -46,7 +43,7 @@ function SellerBody(props) {
             body = <SellerInitializeBody {...props}/>
             break;
         case "1":
-            textToDisplay = "Cancel transaction from buyer: " + props.buyerAddress
+            textToDisplay = "Cancel transaction"
             body = <StandardButtonBody
                     textToDisplay = {textToDisplay}
                     buttonOnClickHandler = {sellerCancelPurchaseButtonOnClickHandler}

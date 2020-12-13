@@ -1,6 +1,12 @@
 const { Navbar, Nav, Button, Row, ButtonGroup, ToggleButton } = require("react-bootstrap");
 
 function HeaderBar (props) {
+    let rightSide
+    if (!props.isEthConnected) {
+        rightSide = <ConnectButton {...props}/>
+    } else {
+        rightSide = <p>Ether balance: {props.etherBalance} {props.ercSymbol} balance: {props.ercBalance}</p>
+    }
     return (
     <Navbar bg="light" expand="lg">
         <Navbar.Brand href="#home">Escrow</Navbar.Brand>
@@ -11,9 +17,16 @@ function HeaderBar (props) {
             </Row>
         </Nav>
         <Nav className="mr-sm-2">
-            Ether balance: {props.etherBalance} {props.ercSymbol} balance: {props.ercBalance}
+            {rightSide}
         </Nav>
+        
     </Navbar>
+    )
+}
+
+function ConnectButton(props) {
+    return (
+        <Button onClick={props.connectButtonOnClickHandler}>Connect to Ethereum</Button>
     )
 }
 
