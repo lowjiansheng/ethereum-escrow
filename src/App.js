@@ -8,6 +8,7 @@ import MockERC20 from './abis/MockERC20.json'
 import BuyerBody from './components/BuyerBody'
 import SellerBody from './components/SellerBody'
 import Users from './constants/Users'
+import { Container } from 'react-bootstrap'
 
 class App extends Component {
 
@@ -35,6 +36,11 @@ class App extends Component {
 
     // Contract information
     const escrowCurrentState = await escrowContract.methods.currentState().call()
+    console.log("Debug: Current escrow state " + escrowCurrentState)
+
+    // User information
+    const sellerAddress = await escrowContract.methods.seller().call()
+    const buyerAddress = await escrowContract.methods.buyer().call()
 
     this.setState({
       account: accounts[0],
@@ -45,7 +51,9 @@ class App extends Component {
       mockERC20Contract: mockERC20Contract,
       escrowState: escrowCurrentState,
       web3: web3,
-      sellingAmount: sellingAmount
+      sellingAmount: sellingAmount,
+      sellerAddress: sellerAddress,
+      buyerAddress: buyerAddress
     })
   }
 
@@ -61,7 +69,9 @@ class App extends Component {
       ercSymbol: '',
       escrowState: '',
       web3: {},
-      sellingAmount: ''
+      sellingAmount: '',
+      sellerAddress: '',
+      buyerAddress: ''
     }
   }
 
@@ -93,6 +103,7 @@ class App extends Component {
                   mockERC20Contract={this.state.mockERC20Contract}
                   sellerAddress={this.state.account}
                   setSellingAmountHandler={this.setSellingAmountHandler}
+                  buyerAddress={this.state.buyerAddress}
                   />
     } else {
       mainBody = <BuyerBody 
@@ -102,6 +113,7 @@ class App extends Component {
                   mockERC20Contract={this.state.mockERC20Contract}
                   web3={this.state.web3}
                   buyerAddress={this.state.account}
+                  sellerAddress={this.state.sellerAddress}
                   />
     }
 
@@ -113,9 +125,9 @@ class App extends Component {
           ercSymbol={this.state.ercSymbol}
           sellerOnClick={this.onSellerButtonClick} 
           buyerOnClick={this.onBuyerButtonClick}/>
-          <div className = "container">
+          <Container>
             {mainBody}
-          </div>
+          </Container>
       </div>
     );
   }

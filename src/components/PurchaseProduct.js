@@ -30,7 +30,7 @@ function PurchaseProduct(props) {
     return (
         <Container>
             <Row>
-                Buyer to purchase
+                Buyer to purchase from seller {props.sellerAddress}
             </Row>
             <Row>
                 <Button onClick={purchaseButtonOnClickHandler}>Purchase product</Button>

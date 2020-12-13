@@ -23,7 +23,7 @@ function ItemReceived(props) {
     return (
         <Container>
             <Row>
-                Item Received
+                Item Received from seller: {props.sellerAddress}
             </Row>
             <Row>
                 <Button onClick={itemReceivedOnClickHandler}>Item Received!</Button>

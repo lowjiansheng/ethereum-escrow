@@ -3,17 +3,67 @@ import Web3 from 'web3';
 import Escrow from '../abis/Escrow.json'
 import ContractStates from '../constants/ContractStates'
 import "web3"
+import StandardButtonBody from './StandardButtonBody';
 
 const { Component } = require("react");
 
 function SellerBody(props) {
+    
+    const sellerRefundButtonOnClickHandler = (event) => {
+        event.preventDefault()
+
+        const escrowContract = props.escrowContract
+        const sellerAddress = props.sellerAddress
+
+        escrowContract.methods.refundBuyer().send({ from: sellerAddress }, function (error, result) {
+            if (error) {
+                return error
+            } else {
+                return result
+            }
+        })
+    }
+
+    const sellerCancelPurchaseButtonOnClickHandler = (event) => {
+        event.preventDefault()
+
+        const escrowContract = props.escrowContract
+        const sellerAddress = props.sellerAddress
+
+        escrowContract.methods.cancelPurchase().send({ from: sellerAddress }, function (error, result) {
+            if (error) {
+                return error
+            } else {
+                return result
+            }
+        })
+    }
+    
     let body
+    let textToDisplay
     switch (props.escrowState) {
         case "0":
             body = <SellerInitializeBody {...props}/>
             break;
+        case "1":
+            textToDisplay = "Cancel transaction from buyer: " + props.buyerAddress
+            body = <StandardButtonBody
+                    textToDisplay = {textToDisplay}
+                    buttonOnClickHandler = {sellerCancelPurchaseButtonOnClickHandler}
+                    buttonText = "Click to cancel transaction"/>
+            break;
+        case "2":
+            textToDisplay = "Refund buyer: " + props.buyerAddress 
+            body = <StandardButtonBody 
+                    textToDisplay = "Refund buyer"
+                    buttonOnClickHandler = {sellerRefundButtonOnClickHandler}
+                    buttonText = "Click to refund buyer"/>
+            break; 
+        case "3":
+    body = <div>Contract end. Money has been refunded to buyer. {props.buyerAddress}</div>
+            break;
         case "4":
-            body = <div>Contract end</div>
+            body = <div>Contract end. Funds have been released to seller (you).</div>
             break;
         default:
             body = <SellerWaiting {...props}/>

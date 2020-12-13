@@ -76,7 +76,7 @@ contract Escrow {
     }
 
     // if buyer doesn't initiate a purchase, allow the seller to get back the funds
-    function cancelPurchase() public onlySeller inState(State.Created) payable {
+    function cancelPurchase() public onlySeller inState(State.SellerInitialized) payable {
         require(
             ercToken.balanceOf(address(this)) == 2 * sellingAmount,
             "this address does not have enough balance"

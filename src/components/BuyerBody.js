@@ -17,8 +17,10 @@ function BuyerBody(props) {
         case "2":
             body = <ItemReceived {...props}/>
             break;
+        case "3":
+            body = <div>Contract end. Money has been refunded to buyer(you).</div>
         case "4":
-            body = <div>Contract end</div>
+            body = <div>Contract end. Funds have been released to the seller.</div>
             break;
         default:
             body = <div>Error state</div>
