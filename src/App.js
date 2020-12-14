@@ -16,21 +16,31 @@ class App extends Component {
   componentWillMount() {
     console.log(window.ethereum)
     if (window.ethereum) {
+      const web3 = new Web3(Web3.givenProvider || "http://localhost:8545")
       this.setState({
-        ethEnabled: true
+        ethEnabled: true,
+        web3: web3
       })
-      this.loadBlockchainData()
+      this.loadBlockchainData(web3)
     } else {
       this.setState({
         ethEnabled: false
       })
     }
-  
+
+    window.ethereum.on('accountsChanged', (accounts) => {
+      this.loadAccountInformation(this.state.web3, this.state.mockERC20Contract).then((accountInformation) => {
+        this.setState({
+          ethConnected: true,
+          etherBalance: accountInformation.etherBalance,
+          ercBalance: accountInformation.mockERC20Balance
+        })
+      })
+    })
   }
 
-  async loadBlockchainData() {
+  async loadBlockchainData(web3) {
 
-    const web3 = new Web3(Web3.givenProvider || "http://localhost:8545")
     const network = await web3.eth.net.getNetworkType()
     
     const networkId = await web3.eth.net.getId()
@@ -78,11 +88,32 @@ class App extends Component {
     })
   }
 
-  connectEthWallet = (event) => {
+  async loadAccountInformation(web3, mockERC20Contract) {
+    const userAddresses = await web3.eth.getAccounts()
+    console.log("loading account information?")
+    if (userAddresses.length > 0){
+      const etherBalance = await web3.eth.getBalance(userAddresses[0])
+      const mockERC20Balance = await mockERC20Contract.methods.balanceOf(userAddresses[0]).call()
+      console.log("addres > 1?")
+      console.log(etherBalance)
+      console.log(mockERC20Balance)
+      return {
+        userAddress: userAddresses[0],
+        etherBalance: web3.utils.fromWei(etherBalance),
+        mockERC20Balance: web3.utils.fromWei(mockERC20Balance)
+      }
+    } else {
+      this.setState({
+        ethConnected: false
+      })
+      return {}
+    }
+  }
+
+  connectEthWallet (event) {
     event.preventDefault()
     window.ethereum.enable()
   }
-
 
   constructor(props) {
     super(props)
